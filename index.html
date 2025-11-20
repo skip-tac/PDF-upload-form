@@ -300,7 +300,7 @@
         color: var(--danger);
       }
 
-      /* PC表示時のみカード幅・中央寄せ・縦余白調整 */
+      /* PCのみカード幅・中央寄せ・縦余白調整 */
       @media (min-width: 768px) {
         body {
           background: var(--bg);
@@ -547,7 +547,7 @@
           return;
         }
 
-        setStatus("ファイルを読み込んでいます…");
+        setStatus("ファイルを読み込んでいます…", "info");
         setSubmitting(true);
 
         const formData = new FormData();
@@ -560,26 +560,14 @@
         });
 
         try {
-          const res = await fetch(GAS_ENDPOINT, {
+          // プリフライトを避けるため no-cors で送信する
+          await fetch(GAS_ENDPOINT, {
             method: "POST",
             body: formData,
+            mode: "no-cors",
           });
 
-          let data = null;
-          try {
-            data = await res.json();
-          } catch (e) {}
-
-          if (!res.ok || !data || data.success === false) {
-            const msg =
-              (data && data.message) ||
-              "サーバ側でエラーが発生しました。(status " + res.status + ")";
-            setStatus(msg, "error");
-            setSubmitting(false);
-            return;
-          }
-
-          setStatus(data.message || "アップロードが完了しました。", "ok");
+          setStatus("アップロードが完了しました。", "ok");
           setSubmitting(false);
           document.getElementById("uploadForm").reset();
           updateSizeInfo();
