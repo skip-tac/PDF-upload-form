@@ -15,10 +15,7 @@
         --text-main: #111827;
         --text-sub: #6b7280;
       }
-
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
@@ -29,7 +26,6 @@
         color: var(--text-main);
       }
 
-      /* モバイル基準レイアウト（スマホはこのまま） */
       .app {
         width: 100%;
         background: var(--surface);
@@ -41,13 +37,11 @@
         color: #f5fdf0;
         padding: 14px 16px 10px;
       }
-
       .header-title {
         font-size: 17px;
         font-weight: 600;
         letter-spacing: 0.02em;
       }
-
       .header-sub {
         margin-top: 4px;
         font-size: 12px;
@@ -70,7 +64,6 @@
         margin-bottom: 14px;
         border: 1px dashed #e5e7eb;
       }
-
       .user-info-dot {
         width: 6px;
         height: 6px;
@@ -79,13 +72,9 @@
         box-shadow: 0 0 0 4px rgba(25, 84, 0, 0.35);
       }
 
-      form {
-        margin: 0;
-      }
+      form { margin: 0; }
 
-      .field {
-        margin-bottom: 14px;
-      }
+      .field { margin-bottom: 14px; }
 
       .field-label-row {
         display: flex;
@@ -100,7 +89,6 @@
         font-weight: 500;
         color: #374151;
       }
-
       .label-badge {
         font-size: 11px;
         color: var(--text-sub);
@@ -121,7 +109,6 @@
           background 0.15s ease,
           transform 0.06s ease;
       }
-
       select:focus,
       input[type="text"]:focus,
       textarea:focus {
@@ -133,7 +120,6 @@
         background: #ffffff;
         transform: translateY(-1px);
       }
-
       textarea {
         resize: vertical;
         min-height: 70px;
@@ -147,7 +133,6 @@
         padding: 10px 10px 8px;
         background: #f9fafb;
       }
-
       .file-input-top {
         display: flex;
         justify-content: space-between;
@@ -155,7 +140,6 @@
         gap: 12px;
         margin-bottom: 6px;
       }
-
       .file-input-button {
         position: relative;
         overflow: hidden;
@@ -175,16 +159,12 @@
           transform 0.06s ease,
           box-shadow 0.15s ease;
       }
-
       .file-input-button:hover {
         background: #f3f4f6;
         transform: translateY(-1px);
         box-shadow: 0 3px 8px rgba(15, 23, 42, 0.14);
       }
-
-      .file-input-button span.icon {
-        font-size: 14px;
-      }
+      .file-input-button span.icon { font-size: 14px; }
 
       input[type="file"] {
         position: absolute;
@@ -210,7 +190,6 @@
         font-size: 11px;
         color: #4b5563;
       }
-
       #sizeInfo.warning {
         color: var(--danger);
         font-weight: 600;
@@ -285,27 +264,10 @@
         }
       }
 
-      #status {
-        margin-top: 14px;
-        font-size: 12px;
-        color: var(--text-sub);
-        min-height: 16px;
-      }
-
-      #status.ok {
-        color: var(--primary);
-      }
-
-      #status.error {
-        color: var(--danger);
-      }
-
-      /* PC表示時のみカード幅・中央寄せ・縦余白調整 */
       @media (min-width: 768px) {
         body {
           background: var(--bg);
         }
-
         .app {
           max-width: 480px;
           margin: 24px auto;
@@ -316,11 +278,9 @@
             0 1px 3px rgba(15, 23, 42, 0.08);
           overflow: hidden;
         }
-
         .header {
           border-radius: 18px 18px 0 0;
         }
-
         .main {
           border-radius: 0 0 18px 18px;
         }
@@ -337,13 +297,25 @@
       </div>
 
       <div class="main">
-        <div id="userInfo" class="user-info">
+        <div class="user-info">
           <span class="user-info-dot"></span>
           <span>LINEユーザー名と法人名または氏名、書類を入力してください</span>
         </div>
 
-        <form id="uploadForm">
-          <!-- 1. LINEユーザー名 -->
+        <!-- 応答を受けるための hidden iframe -->
+        <iframe
+          name="uploadFrame"
+          id="uploadFrame"
+          style="display: none"
+        ></iframe>
+
+        <!-- 直接 GAS に multipart/form-data でPOSTするフォーム -->
+        <form
+          id="uploadForm"
+          method="post"
+          enctype="multipart/form-data"
+          target="uploadFrame"
+        >
           <div class="field">
             <div class="field-label-row">
               <label for="lineName">LINEユーザー名</label>
@@ -351,13 +323,13 @@
             </div>
             <input
               id="lineName"
+              name="line_name"
               type="text"
               placeholder="例）LINEの表示名"
               required
             />
           </div>
 
-          <!-- 2. 法人名 / 氏名 -->
           <div class="field">
             <div class="field-label-row">
               <label for="entity">法人名 / 氏名</label>
@@ -365,19 +337,19 @@
             </div>
             <input
               id="entity"
+              name="entity"
               type="text"
               placeholder="例）SKIP税理士法人 / 山田太郎"
               required
             />
           </div>
 
-          <!-- 3. 書類の種類 -->
           <div class="field">
             <div class="field-label-row">
               <label for="category">書類の種類</label>
               <span class="label-badge">必須</span>
             </div>
-            <select id="category" required>
+            <select id="category" name="category" required>
               <option value="">選択してください</option>
               <option value="支払請求書">支払請求書</option>
               <option value="売上請求書">売上請求書</option>
@@ -386,16 +358,14 @@
             </select>
           </div>
 
-          <!-- 4. 備考 -->
           <div class="field">
             <div class="field-label-row">
               <label for="memo">備考</label>
               <span class="label-badge">任意</span>
             </div>
-            <textarea id="memo" rows="3"></textarea>
+            <textarea id="memo" name="memo" rows="3"></textarea>
           </div>
 
-          <!-- 5. PDFファイル -->
           <div class="field">
             <div class="field-label-row">
               <label for="files">PDFファイル</label>
@@ -441,7 +411,6 @@
     <script>
       const GAS_ENDPOINT =
         "https://script.google.com/macros/s/AKfycbw3KHviRJrUAfrsr_ad60QmGHi9l32G_48ziqZXAWDZhUehmA9FoQlrw1nqS2aH8fk/exec";
-
       const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 40MB
 
       function formatMb(bytes) {
@@ -454,7 +423,6 @@
         const fileCountPill = document.getElementById("fileCountPill");
 
         const files = fileInput.files ? Array.from(fileInput.files) : [];
-
         if (!files.length) {
           sizeInfo.textContent = "";
           sizeInfo.classList.remove("warning");
@@ -462,7 +430,7 @@
           return;
         }
 
-        const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+        const totalBytes = files.reduce((s, f) => s + f.size, 0);
         const totalMb = formatMb(totalBytes);
         const maxMb = formatMb(MAX_TOTAL_BYTES);
 
@@ -480,8 +448,7 @@
       function setStatus(msg, type) {
         const el = document.getElementById("status");
         el.textContent = msg || "";
-        el.classList.remove("ok");
-        el.classList.remove("error");
+        el.classList.remove("ok", "error");
         if (type === "ok") el.classList.add("ok");
         if (type === "error") el.classList.add("error");
       }
@@ -489,7 +456,6 @@
       function setSubmitting(isSubmitting) {
         const btn = document.getElementById("submitBtn");
         const label = document.getElementById("submitBtnLabel");
-
         if (isSubmitting) {
           btn.disabled = true;
           label.innerHTML =
@@ -500,104 +466,80 @@
         }
       }
 
-      async function submitForm(event) {
-        event.preventDefault();
-
-        const lineName = document.getElementById("lineName").value.trim();
-        const entity = document.getElementById("entity").value.trim();
-        const category = document.getElementById("category").value;
-        const memo = document.getElementById("memo").value;
-        const fileInput = document.getElementById("files");
-        const files = fileInput.files ? Array.from(fileInput.files) : [];
-
-        if (!lineName) {
-          alert("LINEユーザー名を入力してください。");
-          return;
-        }
-        if (!entity) {
-          alert("法人名または氏名を入力してください。");
-          return;
-        }
-        if (!files.length) {
-          alert("PDFファイルを選択してください。");
-          return;
-        }
-        if (!category) {
-          alert("書類の種類を選択してください。");
-          return;
-        }
-
-        const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
-        if (totalBytes > MAX_TOTAL_BYTES) {
-          const mb = formatMb(totalBytes);
-          const maxMb = formatMb(MAX_TOTAL_BYTES);
-          alert(
-            "ファイルの合計サイズが " +
-              mb +
-              " MB あります。\n" +
-              "1回のアップロードは合計 " +
-              maxMb +
-              " MB までです。ファイルを分けてアップロードしてください。"
-          );
-          return;
-        }
-
-        if (!GAS_ENDPOINT) {
-          alert("GAS_ENDPOINT が設定されていません。");
-          return;
-        }
-
-        setStatus("ファイルを読み込んでいます…");
-        setSubmitting(true);
-
-        const formData = new FormData();
-        formData.append("line_name", lineName);
-        formData.append("entity", entity);
-        formData.append("category", category);
-        formData.append("memo", memo);
-        files.forEach((file) => {
-          formData.append("files", file, file.name);
-        });
-
-        try {
-          const res = await fetch(GAS_ENDPOINT, {
-            method: "POST",
-            body: formData,
-          });
-
-          let data = null;
-          try {
-            data = await res.json();
-          } catch (e) {}
-
-          if (!res.ok || !data || data.success === false) {
-            const msg =
-              (data && data.message) ||
-              "サーバ側でエラーが発生しました。(status " + res.status + ")";
-            setStatus(msg, "error");
-            setSubmitting(false);
-            return;
-          }
-
-          setStatus(data.message || "アップロードが完了しました。", "ok");
-          setSubmitting(false);
-          document.getElementById("uploadForm").reset();
-          updateSizeInfo();
-        } catch (err) {
-          console.error(err);
-          setStatus("ネットワークエラーが発生しました。", "error");
-          setSubmitting(false);
-        }
-      }
-
       document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("uploadForm");
+        const iframe = document.getElementById("uploadFrame");
+
+        // GASエンドポイントをフォームに設定
+        form.action = GAS_ENDPOINT;
+
         updateSizeInfo();
-        document
-          .getElementById("uploadForm")
-          .addEventListener("submit", submitForm);
         document
           .getElementById("files")
           .addEventListener("change", updateSizeInfo);
+
+        let hasSubmitted = false;
+
+        iframe.addEventListener("load", () => {
+          // 初回の about:blank 読み込みは無視
+          if (!hasSubmitted) {
+            hasSubmitted = true;
+            return;
+          }
+          // ここに来たらGASからレスポンスを受信済みとみなす
+          setStatus("アップロードが完了しました。", "ok");
+          setSubmitting(false);
+          form.reset();
+          updateSizeInfo();
+        });
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const lineName = document.getElementById("lineName").value.trim();
+          const entity = document.getElementById("entity").value.trim();
+          const category = document.getElementById("category").value;
+          const fileInput = document.getElementById("files");
+          const files = fileInput.files ? Array.from(fileInput.files) : [];
+
+          if (!lineName) {
+            alert("LINEユーザー名を入力してください。");
+            return;
+          }
+          if (!entity) {
+            alert("法人名または氏名を入力してください。");
+            return;
+          }
+          if (!files.length) {
+            alert("PDFファイルを選択してください。");
+            return;
+          }
+          if (!category) {
+            alert("書類の種類を選択してください。");
+            return;
+          }
+
+          const totalBytes = files.reduce((s, f) => s + f.size, 0);
+          if (totalBytes > MAX_TOTAL_BYTES) {
+            const mb = formatMb(totalBytes);
+            const maxMb = formatMb(MAX_TOTAL_BYTES);
+            alert(
+              "ファイルの合計サイズが " +
+                mb +
+                " MB あります。\n" +
+                "1回のアップロードは合計 " +
+                maxMb +
+                " MB までです。ファイルを分けてアップロードしてください。"
+            );
+            return;
+          }
+
+          setStatus("アップロード中です…", "info");
+          setSubmitting(true);
+
+          hasSubmitted = false;
+          form.submit(); // ブラウザ標準のmultipart/form-data POST
+        });
       });
     </script>
   </body>
