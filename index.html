@@ -29,10 +29,11 @@
         color: var(--text-main);
       }
 
+      /* PC/スマホ共通で画面いっぱいのブロック表示 */
       .app {
         width: 100%;
-        max-width: 480px;
-        margin: 0 auto;
+        max-width: 100%;
+        margin: 0;
         background: var(--surface);
         min-height: 100vh;
       }
@@ -300,31 +301,6 @@
       #status.error {
         color: var(--danger);
       }
-
-      @media (min-width: 768px) {
-        body {
-          display: flex;
-          justify-content: center;
-        }
-
-        .app {
-          margin-top: 24px;
-          margin-bottom: 24px;
-          border-radius: 18px;
-          box-shadow:
-            0 18px 40px rgba(15, 23, 42, 0.14),
-            0 1px 3px rgba(15, 23, 42, 0.08);
-          overflow: hidden;
-        }
-
-        .header {
-          border-radius: 18px 18px 0 0;
-        }
-
-        .main {
-          border-radius: 0 0 18px 18px;
-        }
-      }
     </style>
   </head>
   <body>
@@ -421,8 +397,8 @@
     </div>
 
     <script>
-      // 例: const GAS_ENDPOINT = "https://script.google.com/macros/s/XXXX/exec";
-      const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbw3KHviRJrUAfrsr_ad60QmGHi9l32G_48ziqZXAWDZhUehmA9FoQlrw1nqS2aH8fk/exec";
+      const GAS_ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbw3KHviRJrUAfrsr_ad60QmGHi9l32G_48ziqZXAWDZhUehmA9FoQlrw1nqS2aH8fk/exec";
 
       const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 40MB
 
@@ -519,7 +495,7 @@
           return;
         }
 
-        if (!GAS_ENDPOINT || GAS_ENDPOINT === "YOUR_GAS_WEBAPP_URL_HERE") {
+        if (!GAS_ENDPOINT) {
           alert("GAS_ENDPOINT が設定されていません。");
           return;
         }
@@ -531,7 +507,6 @@
         formData.append("entity", entity);
         formData.append("category", category);
         formData.append("memo", memo);
-
         files.forEach((file) => {
           formData.append("files", file, file.name);
         });
@@ -545,9 +520,7 @@
           let data = null;
           try {
             data = await res.json();
-          } catch (e) {
-            // JSONじゃない場合
-          }
+          } catch (e) {}
 
           if (!res.ok || !data || data.success === false) {
             const msg =
