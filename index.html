@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>資料アップロード</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+        --primary: #195400;
+        --primary-dark: #143f00;
+        --danger: #dc2626;
+        --border: #e5e7eb;
+        --text-main: #111827;
+        --text-sub: #6b7280;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: var(--bg);
+        color: var(--text-main);
+      }
+
+      .app {
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        background: var(--surface);
+        min-height: 100vh;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #3a8d10, #195400);
+        color: #f5fdf0;
+        padding: 14px 16px 10px;
+      }
+
+      .header-title {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .header-sub {
+        margin-top: 4px;
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .main {
+        padding: 16px 16px 20px;
+      }
+
+      .user-info {
+        font-size: 12px;
+        color: var(--text-sub);
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        border: 1px dashed #e5e7eb;
+      }
+
+      .user-info-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--primary);
+        box-shadow: 0 0 0 4px rgba(25, 84, 0, 0.35);
+      }
+
+      form {
+        margin: 0;
+      }
+
+      .field {
+        margin-bottom: 14px;
+      }
+
+      .field-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+      }
+
+      .label-badge {
+        font-size: 11px;
+        color: var(--text-sub);
+      }
+
+      select,
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 9px 11px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        font-size: 14px;
+        background: #f9fafb;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease,
+          background 0.15s ease,
+          transform 0.06s ease;
+      }
+
+      select:focus,
+      input[type="text"]:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow:
+          0 0 0 1px rgba(25, 84, 0, 0.45),
+          0 4px 10px rgba(15, 23, 42, 0.12);
+        background: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 70px;
+        max-height: 200px;
+      }
+
+      .file-input-wrap {
+        position: relative;
+        border-radius: 10px;
+        border: 1px dashed #d1d5db;
+        padding: 10px 10px 8px;
+        background: #f9fafb;
+      }
+
+      .file-input-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+
+      .file-input-button {
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        background: #ffffff;
+        font-size: 12px;
+        cursor: pointer;
+        color: #111827;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+        transition:
+          background 0.15s ease,
+          transform 0.06s ease,
+          box-shadow 0.15s ease;
+      }
+
+      .file-input-button:hover {
+        background: #f3f4f6;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.14);
+      }
+
+      .file-input-button span.icon {
+        font-size: 14px;
+      }
+
+      input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .file-input-help {
+        font-size: 11px;
+        color: var(--text-sub);
+      }
+
+      .file-input-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: 4px;
+        gap: 6px;
+      }
+
+      #sizeInfo {
+        font-size: 11px;
+        color: #4b5563;
+      }
+
+      #sizeInfo.warning {
+        color: var(--danger);
+        font-weight: 600;
+      }
+
+      .file-count-pill {
+        font-size: 11px;
+        color: var(--primary);
+        background: #ecf4e3;
+        border-radius: 999px;
+        padding: 2px 8px;
+        white-space: nowrap;
+      }
+
+      button#submitBtn {
+        margin-top: 6px;
+        background: var(--primary);
+        color: #ffffff;
+        width: 100%;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 11px 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: none;
+        box-shadow:
+          0 8px 18px rgba(25, 84, 0, 0.32),
+          0 0 0 1px rgba(25, 84, 0, 0.4);
+        transition:
+          transform 0.08s ease,
+          box-shadow 0.12s ease,
+          background 0.12s ease,
+          opacity 0.12s ease;
+      }
+
+      button#submitBtn:hover:not(:disabled) {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow:
+          0 12px 24px rgba(25, 84, 0, 0.38),
+          0 0 0 1px rgba(25, 84, 0, 0.5);
+      }
+
+      button#submitBtn:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow:
+          0 6px 14px rgba(25, 84, 0, 0.32),
+          0 0 0 1px rgba(25, 84, 0, 0.5);
+      }
+
+      button#submitBtn:disabled {
+        opacity: 0.7;
+        cursor: default;
+        box-shadow: none;
+      }
+
+      button#submitBtn .spinner {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 2px solid rgba(248, 250, 252, 0.55);
+        border-top-color: #ffffff;
+        animation: spin 0.7s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      #status {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--text-sub);
+        min-height: 16px;
+      }
+
+      #status.ok {
+        color: var(--primary);
+      }
+
+      #status.error {
+        color: var(--danger);
+      }
+
+      @media (min-width: 768px) {
+        body {
+          display: flex;
+          justify-content: center;
+        }
+
+        .app {
+          margin-top: 24px;
+          margin-bottom: 24px;
+          border-radius: 18px;
+          box-shadow:
+            0 18px 40px rgba(15, 23, 42, 0.14),
+            0 1px 3px rgba(15, 23, 42, 0.08);
+          overflow: hidden;
+        }
+
+        .header {
+          border-radius: 18px 18px 0 0;
+        }
+
+        .main {
+          border-radius: 0 0 18px 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">
+        <div class="header-title">資料アップロード</div>
+        <div class="header-sub">
+          PDF形式の請求書・領収書をアップロードしてください
+        </div>
+      </div>
+
+      <div class="main">
+        <div id="userInfo" class="user-info">
+          <span class="user-info-dot"></span>
+          <span>法人名または氏名と書類を入力してください</span>
+        </div>
+
+        <form id="uploadForm">
+          <div class="field">
+            <div class="field-label-row">
+              <label for="entity">法人名 / 氏名</label>
+              <span class="label-badge">必須</span>
+            </div>
+            <input
+              id="entity"
+              type="text"
+              placeholder="例）SKIP税理士法人 / 山田太郎"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <div class="field-label-row">
+              <label for="category">書類の種類</label>
+              <span class="label-badge">必須</span>
+            </div>
+            <select id="category" required>
+              <option value="">選択してください</option>
+              <option value="支払請求書">支払請求書</option>
+              <option value="売上請求書">売上請求書</option>
+              <option value="領収書">領収書</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="field-label-row">
+              <label for="memo">備考</label>
+              <span class="label-badge">任意</span>
+            </div>
+            <textarea id="memo" rows="3"></textarea>
+          </div>
+
+          <div class="field">
+            <div class="field-label-row">
+              <label for="files">PDFファイル</label>
+              <span class="label-badge">複数選択可</span>
+            </div>
+
+            <div class="file-input-wrap">
+              <div class="file-input-top">
+                <label class="file-input-button">
+                  <span class="icon">📁</span>
+                  <span>ファイルを選択</span>
+                  <input
+                    id="files"
+                    name="files"
+                    type="file"
+                    accept="application/pdf"
+                    multiple
+                    required
+                  />
+                </label>
+                <div class="file-count-pill" id="fileCountPill">
+                  ファイル未選択
+                </div>
+              </div>
+              <div class="file-input-help">
+                1回のアップロードで合計40MBまで。必要なPDFをまとめて選択できます。
+              </div>
+              <div class="file-input-meta">
+                <div id="sizeInfo"></div>
+              </div>
+            </div>
+          </div>
+
+          <button id="submitBtn" type="submit">
+            <span id="submitBtnLabel">アップロードする</span>
+          </button>
+        </form>
+
+        <div id="status"></div>
+      </div>
+    </div>
+
+    <script>
+      // ★ここにGAS WebアプリのURLを貼る
+      // 例: const GAS_ENDPOINT = "https://script.google.com/macros/s/XXXX/exec";
+      const GAS_ENDPOINT = "YOUR_GAS_WEBAPP_URL_HERE";
+
+      const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 40MB
+
+      function formatMb(bytes) {
+        return (bytes / (1024 * 1024)).toFixed(1);
+      }
+
+      function updateSizeInfo() {
+        const fileInput = document.getElementById("files");
+        const sizeInfo = document.getElementById("sizeInfo");
+        const fileCountPill = document.getElementById("fileCountPill");
+
+        const files = fileInput.files ? Array.from(fileInput.files) : [];
+
+        if (!files.length) {
+          sizeInfo.textContent = "";
+          sizeInfo.classList.remove("warning");
+          fileCountPill.textContent = "ファイル未選択";
+          return;
+        }
+
+        const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+        const totalMb = formatMb(totalBytes);
+        const maxMb = formatMb(MAX_TOTAL_BYTES);
+
+        sizeInfo.textContent =
+          "現在の合計サイズ: " + totalMb + " MB / " + maxMb + " MB";
+        fileCountPill.textContent = files.length + "ファイル選択中";
+
+        if (totalBytes > MAX_TOTAL_BYTES) {
+          sizeInfo.classList.add("warning");
+        } else {
+          sizeInfo.classList.remove("warning");
+        }
+      }
+
+      function setStatus(msg, type) {
+        const el = document.getElementById("status");
+        el.textContent = msg || "";
+        el.classList.remove("ok");
+        el.classList.remove("error");
+        if (type === "ok") el.classList.add("ok");
+        if (type === "error") el.classList.add("error");
+      }
+
+      function setSubmitting(isSubmitting) {
+        const btn = document.getElementById("submitBtn");
+        const label = document.getElementById("submitBtnLabel");
+
+        if (isSubmitting) {
+          btn.disabled = true;
+          label.innerHTML =
+            '<span class="spinner"></span><span>アップロード中...</span>';
+        } else {
+          btn.disabled = false;
+          label.textContent = "アップロードする";
+        }
+      }
+
+      async function submitForm(event) {
+        event.preventDefault();
+
+        const entity = document.getElementById("entity").value.trim();
+        const category = document.getElementById("category").value;
+        const memo = document.getElementById("memo").value;
+        const fileInput = document.getElementById("files");
+        const files = fileInput.files ? Array.from(fileInput.files) : [];
+
+        if (!entity) {
+          alert("法人名または氏名を入力してください。");
+          return;
+        }
+        if (!files.length) {
+          alert("PDFファイルを選択してください。");
+          return;
+        }
+        if (!category) {
+          alert("書類の種類を選択してください。");
+          return;
+        }
+
+        const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+        if (totalBytes > MAX_TOTAL_BYTES) {
+          const mb = formatMb(totalBytes);
+          const maxMb = formatMb(MAX_TOTAL_BYTES);
+          alert(
+            "ファイルの合計サイズが " +
+              mb +
+              " MB あります。\n" +
+              "1回のアップロードは合計 " +
+              maxMb +
+              " MB までです。ファイルを分けてアップロードしてください。"
+          );
+          return;
+        }
+
+        if (!GAS_ENDPOINT || GAS_ENDPOINT === "YOUR_GAS_WEBAPP_URL_HERE") {
+          alert("GAS_ENDPOINT が設定されていません。");
+          return;
+        }
+
+        setStatus("ファイルを読み込んでいます…");
+        setSubmitting(true);
+
+        const formData = new FormData();
+        formData.append("entity", entity);
+        formData.append("category", category);
+        formData.append("memo", memo);
+
+        files.forEach((file) => {
+          formData.append("files", file, file.name);
+        });
+
+        try {
+          const res = await fetch(GAS_ENDPOINT, {
+            method: "POST",
+            body: formData,
+          });
+
+          let data = null;
+          try {
+            data = await res.json();
+          } catch (e) {
+            // JSONじゃない場合
+          }
+
+          if (!res.ok || !data || data.success === false) {
+            const msg =
+              (data && data.message) ||
+              "サーバ側でエラーが発生しました。(status " + res.status + ")";
+            setStatus(msg, "error");
+            setSubmitting(false);
+            return;
+          }
+
+          setStatus(data.message || "アップロードが完了しました。", "ok");
+          setSubmitting(false);
+          document.getElementById("uploadForm").reset();
+          updateSizeInfo();
+        } catch (err) {
+          console.error(err);
+          setStatus("ネットワークエラーが発生しました。", "error");
+          setSubmitting(false);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        updateSizeInfo();
+        document
+          .getElementById("uploadForm")
+          .addEventListener("submit", submitForm);
+        document
+          .getElementById("files")
+          .addEventListener("change", updateSizeInfo);
+      });
+    </script>
+  </body>
+</html>
