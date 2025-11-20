@@ -29,7 +29,7 @@
         color: var(--text-main);
       }
 
-      /* モバイルを基準にしたレイアウト */
+      /* モバイル基準レイアウト（スマホはこのまま） */
       .app {
         width: 100%;
         background: var(--surface);
@@ -300,18 +300,16 @@
         color: var(--danger);
       }
 
-      /* PC表示時のみカード化・縦余白調整 */
+      /* PCのみカード幅・中央寄せ・縦余白調整 */
       @media (min-width: 768px) {
         body {
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          padding: 24px 0;
+          background: var(--bg);
         }
 
         .app {
-          max-width: 480px;
-          min-height: auto;
+          max-width: 480px;   /* 横幅をカードサイズに制限 */
+          margin: 24px auto;  /* 中央寄せ＋上下余白 */
+          min-height: auto;   /* 高さは中身に合わせる */
           border-radius: 18px;
           box-shadow:
             0 18px 40px rgba(15, 23, 42, 0.14),
@@ -546,9 +544,7 @@
           let data = null;
           try {
             data = await res.json();
-          } catch (e) {
-            // JSON以外が返ってきた場合
-          }
+          } catch (e) {}
 
           if (!res.ok || !data || data.success === false) {
             const msg =
