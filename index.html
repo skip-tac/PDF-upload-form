@@ -29,11 +29,9 @@
         color: var(--text-main);
       }
 
-      /* PC/スマホ共通で画面いっぱいのブロック表示 */
+      /* モバイルを基準にしたレイアウト */
       .app {
         width: 100%;
-        max-width: 100%;
-        margin: 0;
         background: var(--surface);
         min-height: 100vh;
       }
@@ -301,6 +299,34 @@
       #status.error {
         color: var(--danger);
       }
+
+      /* PC表示時のみカード化・縦余白調整 */
+      @media (min-width: 768px) {
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          padding: 24px 0;
+        }
+
+        .app {
+          max-width: 480px;
+          min-height: auto;
+          border-radius: 18px;
+          box-shadow:
+            0 18px 40px rgba(15, 23, 42, 0.14),
+            0 1px 3px rgba(15, 23, 42, 0.08);
+          overflow: hidden;
+        }
+
+        .header {
+          border-radius: 18px 18px 0 0;
+        }
+
+        .main {
+          border-radius: 0 0 18px 18px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -520,7 +546,9 @@
           let data = null;
           try {
             data = await res.json();
-          } catch (e) {}
+          } catch (e) {
+            // JSON以外が返ってきた場合
+          }
 
           if (!res.ok || !data || data.success === false) {
             const msg =
