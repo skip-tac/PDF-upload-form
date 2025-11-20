@@ -5,6 +5,7 @@
     <title>資料アップロード</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
+      /* ここはそのまま（前回と同じ） */
       :root {
         --bg: #f3f4f6;
         --surface: #ffffff;
@@ -109,6 +110,7 @@
           background 0.15s ease,
           transform 0.06s ease;
       }
+
       select:focus,
       input[type="text"]:focus,
       textarea:focus {
@@ -120,6 +122,7 @@
         background: #ffffff;
         transform: translateY(-1px);
       }
+
       textarea {
         resize: vertical;
         min-height: 70px;
@@ -133,6 +136,7 @@
         padding: 10px 10px 8px;
         background: #f9fafb;
       }
+
       .file-input-top {
         display: flex;
         justify-content: space-between;
@@ -140,6 +144,7 @@
         gap: 12px;
         margin-bottom: 6px;
       }
+
       .file-input-button {
         position: relative;
         overflow: hidden;
@@ -159,11 +164,13 @@
           transform 0.06s ease,
           box-shadow 0.15s ease;
       }
+
       .file-input-button:hover {
         background: #f3f4f6;
         transform: translateY(-1px);
         box-shadow: 0 3px 8px rgba(15, 23, 42, 0.14);
       }
+
       .file-input-button span.icon { font-size: 14px; }
 
       input[type="file"] {
@@ -259,15 +266,11 @@
       }
 
       @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
+        to { transform: rotate(360deg); }
       }
 
       @media (min-width: 768px) {
-        body {
-          background: var(--bg);
-        }
+        body { background: var(--bg); }
         .app {
           max-width: 480px;
           margin: 24px auto;
@@ -278,12 +281,8 @@
             0 1px 3px rgba(15, 23, 42, 0.08);
           overflow: hidden;
         }
-        .header {
-          border-radius: 18px 18px 0 0;
-        }
-        .main {
-          border-radius: 0 0 18px 18px;
-        }
+        .header { border-radius: 18px 18px 0 0; }
+        .main   { border-radius: 0 0 18px 18px; }
       }
     </style>
   </head>
@@ -302,18 +301,15 @@
           <span>LINEユーザー名と法人名または氏名、書類を入力してください</span>
         </div>
 
-        <!-- 応答を受けるための hidden iframe -->
         <iframe
           name="uploadFrame"
           id="uploadFrame"
           style="display: none"
         ></iframe>
 
-        <!-- 直接 GAS に multipart/form-data でPOSTするフォーム -->
         <form
           id="uploadForm"
           method="post"
-          enctype="multipart/form-data"
           target="uploadFrame"
         >
           <div class="field">
@@ -379,7 +375,6 @@
                   <span>ファイルを選択</span>
                   <input
                     id="files"
-                    name="files"
                     type="file"
                     accept="application/pdf"
                     multiple
@@ -399,6 +394,9 @@
             </div>
           </div>
 
+          <!-- base64化したファイル情報を入れる -->
+          <input type="hidden" id="filesJson" name="files_json" />
+
           <button id="submitBtn" type="submit">
             <span id="submitBtnLabel">アップロードする</span>
           </button>
@@ -411,7 +409,7 @@
     <script>
       const GAS_ENDPOINT =
         "https://script.google.com/macros/s/AKfycbw3KHviRJrUAfrsr_ad60QmGHi9l32G_48ziqZXAWDZhUehmA9FoQlrw1nqS2aH8fk/exec";
-      const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 40MB
+      const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 実データ40MB想定（base64で約1.33倍になる点に注意）
 
       function formatMb(bytes) {
         return (bytes / (1024 * 1024)).toFixed(1);
@@ -421,8 +419,8 @@
         const fileInput = document.getElementById("files");
         const sizeInfo = document.getElementById("sizeInfo");
         const fileCountPill = document.getElementById("fileCountPill");
-
         const files = fileInput.files ? Array.from(fileInput.files) : [];
+
         if (!files.length) {
           sizeInfo.textContent = "";
           sizeInfo.classList.remove("warning");
@@ -469,24 +467,22 @@
       document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("uploadForm");
         const iframe = document.getElementById("uploadFrame");
+        const filesInput = document.getElementById("files");
+        const filesJsonInput = document.getElementById("filesJson");
 
-        // GASエンドポイントをフォームに設定
         form.action = GAS_ENDPOINT;
 
         updateSizeInfo();
-        document
-          .getElementById("files")
-          .addEventListener("change", updateSizeInfo);
+        filesInput.addEventListener("change", updateSizeInfo);
 
         let hasSubmitted = false;
 
         iframe.addEventListener("load", () => {
-          // 初回の about:blank 読み込みは無視
           if (!hasSubmitted) {
+            // 初回の about:blank 読み込みは無視
             hasSubmitted = true;
             return;
           }
-          // ここに来たらGASからレスポンスを受信済みとみなす
           setStatus("アップロードが完了しました。", "ok");
           setSubmitting(false);
           form.reset();
@@ -499,8 +495,7 @@
           const lineName = document.getElementById("lineName").value.trim();
           const entity = document.getElementById("entity").value.trim();
           const category = document.getElementById("category").value;
-          const fileInput = document.getElementById("files");
-          const files = fileInput.files ? Array.from(fileInput.files) : [];
+          const files = filesInput.files ? Array.from(filesInput.files) : [];
 
           if (!lineName) {
             alert("LINEユーザー名を入力してください。");
@@ -534,11 +529,41 @@
             return;
           }
 
-          setStatus("アップロード中です…", "info");
+          setStatus("ファイルを変換中です…", "info");
           setSubmitting(true);
 
-          hasSubmitted = false;
-          form.submit(); // ブラウザ標準のmultipart/form-data POST
+          // FileReaderで全ファイルをbase64に変換
+          const readers = [];
+          const results = [];
+          let remaining = files.length;
+
+          files.forEach((file, index) => {
+            const reader = new FileReader();
+            readers.push(reader);
+            reader.onload = (ev) => {
+              const dataUrl = ev.target.result; // "data:application/pdf;base64,AAAA..."
+              const parts = String(dataUrl).split(",");
+              const base64 = parts.length > 1 ? parts[1] : "";
+              results[index] = {
+                name: file.name,
+                type: file.type || "application/pdf",
+                dataBase64: base64,
+              };
+              remaining -= 1;
+              if (remaining === 0) {
+                // 全ファイル読み込み完了 → JSONにしてhiddenに格納し送信
+                filesJsonInput.value = JSON.stringify(results);
+                hasSubmitted = false;
+                form.submit();
+              }
+            };
+            reader.onerror = (err) => {
+              console.error(err);
+              setStatus("ファイルの読み込み中にエラーが発生しました。", "error");
+              setSubmitting(false);
+            };
+            reader.readAsDataURL(file);
+          });
         });
       });
     </script>
