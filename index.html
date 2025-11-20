@@ -5,7 +5,6 @@
     <title>資料アップロード</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      /* ここはそのまま（前回と同じ） */
       :root {
         --bg: #f3f4f6;
         --surface: #ffffff;
@@ -270,7 +269,9 @@
       }
 
       @media (min-width: 768px) {
-        body { background: var(--bg); }
+        body {
+          background: var(--bg);
+        }
         .app {
           max-width: 480px;
           margin: 24px auto;
@@ -281,8 +282,12 @@
             0 1px 3px rgba(15, 23, 42, 0.08);
           overflow: hidden;
         }
-        .header { border-radius: 18px 18px 0 0; }
-        .main   { border-radius: 0 0 18px 18px; }
+        .header {
+          border-radius: 18px 18px 0 0;
+        }
+        .main {
+          border-radius: 0 0 18px 18px;
+        }
       }
     </style>
   </head>
@@ -301,12 +306,14 @@
           <span>LINEユーザー名と法人名または氏名、書類を入力してください</span>
         </div>
 
+        <!-- 応答を受ける hidden iframe -->
         <iframe
           name="uploadFrame"
           id="uploadFrame"
           style="display: none"
         ></iframe>
 
+        <!-- GAS にPOSTするフォーム（bodyはJSで組み立て） -->
         <form
           id="uploadForm"
           method="post"
@@ -394,7 +401,7 @@
             </div>
           </div>
 
-          <!-- base64化したファイル情報を入れる -->
+          <!-- base64変換したファイル情報を入れる -->
           <input type="hidden" id="filesJson" name="files_json" />
 
           <button id="submitBtn" type="submit">
@@ -409,7 +416,7 @@
     <script>
       const GAS_ENDPOINT =
         "https://script.google.com/macros/s/AKfycbw3KHviRJrUAfrsr_ad60QmGHi9l32G_48ziqZXAWDZhUehmA9FoQlrw1nqS2aH8fk/exec";
-      const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 実データ40MB想定（base64で約1.33倍になる点に注意）
+      const MAX_TOTAL_BYTES = 40 * 1024 * 1024; // 実データ40MB想定
 
       function formatMb(bytes) {
         return (bytes / (1024 * 1024)).toFixed(1);
@@ -454,6 +461,7 @@
       function setSubmitting(isSubmitting) {
         const btn = document.getElementById("submitBtn");
         const label = document.getElementById("submitBtnLabel");
+
         if (isSubmitting) {
           btn.disabled = true;
           label.innerHTML =
@@ -475,14 +483,14 @@
         updateSizeInfo();
         filesInput.addEventListener("change", updateSizeInfo);
 
-        let hasSubmitted = false;
-
+        // iframeの初回読み込み(about:blank)を1回だけ無視する
+        let firstLoad = true;
         iframe.addEventListener("load", () => {
-          if (!hasSubmitted) {
-            // 初回の about:blank 読み込みは無視
-            hasSubmitted = true;
+          if (firstLoad) {
+            firstLoad = false;
             return;
           }
+          // ここに来たらGASからレスポンスを受信済みとみなす
           setStatus("アップロードが完了しました。", "ok");
           setSubmitting(false);
           form.reset();
@@ -495,6 +503,7 @@
           const lineName = document.getElementById("lineName").value.trim();
           const entity = document.getElementById("entity").value.trim();
           const category = document.getElementById("category").value;
+          const memo = document.getElementById("memo").value;
           const files = filesInput.files ? Array.from(filesInput.files) : [];
 
           if (!lineName) {
@@ -532,17 +541,15 @@
           setStatus("ファイルを変換中です…", "info");
           setSubmitting(true);
 
-          // FileReaderで全ファイルをbase64に変換
-          const readers = [];
+          // FileReader で全ファイルを base64 に変換
           const results = [];
           let remaining = files.length;
 
           files.forEach((file, index) => {
             const reader = new FileReader();
-            readers.push(reader);
             reader.onload = (ev) => {
-              const dataUrl = ev.target.result; // "data:application/pdf;base64,AAAA..."
-              const parts = String(dataUrl).split(",");
+              const dataUrl = String(ev.target.result || "");
+              const parts = dataUrl.split(",");
               const base64 = parts.length > 1 ? parts[1] : "";
               results[index] = {
                 name: file.name,
@@ -551,15 +558,15 @@
               };
               remaining -= 1;
               if (remaining === 0) {
-                // 全ファイル読み込み完了 → JSONにしてhiddenに格納し送信
+                // すべてのファイルの変換が完了
                 filesJsonInput.value = JSON.stringify(results);
-                hasSubmitted = false;
+                // ここで実際のPOSTを実行
                 form.submit();
               }
             };
             reader.onerror = (err) => {
               console.error(err);
-              setStatus("ファイルの読み込み中にエラーが発生しました。", "error");
+              setStatus("ファイルの変換中にエラーが発生しました。", "error");
               setSubmitting(false);
             };
             reader.readAsDataURL(file);
