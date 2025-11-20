@@ -300,16 +300,16 @@
         color: var(--danger);
       }
 
-      /* PCのみカード幅・中央寄せ・縦余白調整 */
+      /* PC表示時のみカード幅・中央寄せ・縦余白調整 */
       @media (min-width: 768px) {
         body {
           background: var(--bg);
         }
 
         .app {
-          max-width: 480px;   /* 横幅をカードサイズに制限 */
-          margin: 24px auto;  /* 中央寄せ＋上下余白 */
-          min-height: auto;   /* 高さは中身に合わせる */
+          max-width: 480px;
+          margin: 24px auto;
+          min-height: auto;
           border-radius: 18px;
           box-shadow:
             0 18px 40px rgba(15, 23, 42, 0.14),
@@ -339,10 +339,25 @@
       <div class="main">
         <div id="userInfo" class="user-info">
           <span class="user-info-dot"></span>
-          <span>法人名または氏名と書類を入力してください</span>
+          <span>LINEユーザー名と法人名または氏名、書類を入力してください</span>
         </div>
 
         <form id="uploadForm">
+          <!-- 1. LINEユーザー名 -->
+          <div class="field">
+            <div class="field-label-row">
+              <label for="lineName">LINEユーザー名</label>
+              <span class="label-badge">必須</span>
+            </div>
+            <input
+              id="lineName"
+              type="text"
+              placeholder="例）LINEの表示名"
+              required
+            />
+          </div>
+
+          <!-- 2. 法人名 / 氏名 -->
           <div class="field">
             <div class="field-label-row">
               <label for="entity">法人名 / 氏名</label>
@@ -356,6 +371,7 @@
             />
           </div>
 
+          <!-- 3. 書類の種類 -->
           <div class="field">
             <div class="field-label-row">
               <label for="category">書類の種類</label>
@@ -370,6 +386,7 @@
             </select>
           </div>
 
+          <!-- 4. 備考 -->
           <div class="field">
             <div class="field-label-row">
               <label for="memo">備考</label>
@@ -378,6 +395,7 @@
             <textarea id="memo" rows="3"></textarea>
           </div>
 
+          <!-- 5. PDFファイル -->
           <div class="field">
             <div class="field-label-row">
               <label for="files">PDFファイル</label>
@@ -485,12 +503,17 @@
       async function submitForm(event) {
         event.preventDefault();
 
+        const lineName = document.getElementById("lineName").value.trim();
         const entity = document.getElementById("entity").value.trim();
         const category = document.getElementById("category").value;
         const memo = document.getElementById("memo").value;
         const fileInput = document.getElementById("files");
         const files = fileInput.files ? Array.from(fileInput.files) : [];
 
+        if (!lineName) {
+          alert("LINEユーザー名を入力してください。");
+          return;
+        }
         if (!entity) {
           alert("法人名または氏名を入力してください。");
           return;
@@ -528,6 +551,7 @@
         setSubmitting(true);
 
         const formData = new FormData();
+        formData.append("line_name", lineName);
         formData.append("entity", entity);
         formData.append("category", category);
         formData.append("memo", memo);
